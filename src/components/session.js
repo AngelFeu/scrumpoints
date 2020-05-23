@@ -21,7 +21,6 @@ const Session = () => {
     const [estimationTimeValue, setEstimationTimeValue] = useState('');
     const [pollCountValue, setPollCountValue] = useState('');
     const [stopwatchElapsed, setStopwatchElapsed] = useState('00:00');
-    const [stopElapsed, setStopElapsed] = useState(true);
     const history = useHistory();
 
     const loadTeam = () => {
@@ -34,15 +33,15 @@ const Session = () => {
 
     const startPoll = async (e) => {
         e.preventDefault();
+        clearCounter();
+        setFlipped(false);
         await API.get(`poll/session/${idsession}`)
             .then(res => {
                 const polls = res.data.data;
                 polls.forEach(async poll => {
                     if (!poll.endtime) {
                         await API.delete(`poll/${poll.id}`)
-                            .then(res => {
-                                stopCounter();
-                            })
+                            .then(res => { });
                     }
                 });
             });
@@ -63,8 +62,10 @@ const Session = () => {
         API.post("poll", poll)
             .then(res => {
                 if (res.data.data) {
-                    setStopElapsed(false);
-                    initCounter(false);
+                    console.log(stopElapsed);
+                    stopElapsed = false;
+                    console.log(stopElapsed);
+                    setCounter();
                     initVotesFinished();
                 };
             });
@@ -91,7 +92,6 @@ const Session = () => {
                 });
                 setVotes(teamVotes);
                 if (countTeamWithVote === countTeam) {
-                    stopCounter();
                     finishedVotes(teamVotes);
                 } else {
                     setTimeout(initVotesFinished, 1000);
@@ -100,7 +100,7 @@ const Session = () => {
     }
 
     const finishedVotes = (team) => {
-        setStopElapsed(true);
+        stopElapsed = true;
         let teamVotes = [];
         let voteMin = 100;
         let voteMax = 0;
@@ -151,25 +151,17 @@ const Session = () => {
             consensus: votesConsensus
         };
         API.put(`poll/${idpoll}`, poll)
-            .then(res => {
-
-            });
+            .then(res => { });
     }
 
-    const stopCounter = () => {
-        setStopElapsed(true);
-        clearTimeout(initCounter);
-        setStopwatchElapsed('00:00');
+    const clearCounter = () => {
         count = 0;
     }
 
-    const initCounter = (stop) => {
+    let stopElapsed = true;
+    const setCounter = () => {
         setStopwatchElapsed(counterStopwatchElapsed());
-        if (!stopElapsed || !stop) {
-            setTimeout(initCounter, 1000);
-        } else {
-            setStopElapsed(true);
-        }
+        if (!stopElapsed) setTimeout(setCounter, 1000);
     }
 
     let count = 0;
@@ -209,12 +201,13 @@ const Session = () => {
     }, [idsession, teamComplete]);
 
     useEffect(() => {
-        if (!nameSession)
+        if (!nameSession) {
             API.get(`session/${idsession}`)
                 .then(res => {
                     setNameSession(res.data.data.name);
                 });
-        loadMembers();
+            loadMembers();
+        }
     }, [idsession, nameSession, loadMembers]);
 
     return (

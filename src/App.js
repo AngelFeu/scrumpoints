@@ -5,6 +5,13 @@ import {
   Route
 } from "react-router-dom";
 
+//Style sheets
+import './css/bootstrap.min.css'
+import './css/main.css'
+import './css/normalize.css'
+import './css/scrumonline.css'
+
+//components
 import NoExiste from './components/noexiste'
 import GitHub from './components/github'
 import NavBar from './components/navbar'
@@ -16,7 +23,7 @@ import Session from './components/session'
 import Member from './components/member'
 import Join from './components/join'
 
-function App() {
+const App = () => {
   return (
     <Router>
       <Fragment>
