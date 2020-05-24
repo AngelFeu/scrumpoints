@@ -74,13 +74,12 @@ const Member = () => {
     const reloadCardSet = useCallback(() => {
         API.get(`poll/session/${idsession}`)
             .then(res => {
-                let go = false;
+                let go = true;
                 const polls = res.data.data;
                 polls.forEach(poll => {
-                    if (!!poll.endtime) go = true;
+                    if (!poll.endtime) go = false;
                 });
                 if (go) {
-                    console.log('entra');
                     const cardsDeactive = cardSet.map(card => {
                         card.active = false;
                         card.confirmed = false;

@@ -62,9 +62,7 @@ const Session = () => {
         API.post("poll", poll)
             .then(res => {
                 if (res.data.data) {
-                    console.log(stopElapsed);
                     stopElapsed = false;
-                    console.log(stopElapsed);
                     setCounter();
                     initVotesFinished();
                 };
