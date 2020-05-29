@@ -149,7 +149,30 @@ const Session = () => {
             consensus: votesConsensus
         };
         API.put(`poll/${idpoll}`, poll)
-            .then(res => { });
+            .then(res => {
+                calculateStatistics();
+            });
+    }
+
+    const calculateStatistics = () => {
+        API.get(`poll/session/${idsession}`)
+            .then(res => {
+                const polls = res.data.data;
+                let initialTime = new Date();
+                let finalitationTime = new Date(1900, 1, 1);
+                polls.forEach(poll => {
+                    let starttime = new Date(poll.starttime);
+                    let endtime = new Date(poll.endtime);
+                    if (starttime < initialTime) initialTime = starttime;
+                    if (endtime > finalitationTime) finalitationTime = endtime;
+                });
+                setStatisticsView(true);
+                setAverageAttemptsValue('');
+                setDiscussionTimeValue('');
+                setEstimationProphetValue('');
+                setEstimationTimeValue('');
+                setPollCountValue(polls.length);
+            });
     }
 
     const clearCounter = () => {
@@ -176,12 +199,15 @@ const Session = () => {
         return minutes + ":" + seconds;
     }
 
-    const wipe = () => {
-        API.delete(`session/${idsession}`)
+    //const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
+
+    const wipe = useCallback(async (redirect) => {
+        await API.delete(`session/${idsession}`)
             .then(res => {
-                if (!res.data.data) history.push('/');
+                if (!res.data.data && redirect) history.push('/');
             });
-    }
+        //await waitFor(5000)
+    }, [idsession, history]);
 
     const removeMember = (idmember) => {
         API.delete(`member/${idmember}`)
@@ -202,18 +228,22 @@ const Session = () => {
         if (!nameSession) {
             API.get(`session/${idsession}`)
                 .then(res => {
-                    setNameSession(res.data.data.name);
+                    if (res.data.data) setNameSession(res.data.data.name);
+                    else history.push('/');
                 });
             loadMembers();
         }
-    }, [idsession, nameSession, loadMembers]);
+        window.addEventListener("beforeunload", wipe);
+        window.addEventListener("onremoved", wipe);
+        return () => window.removeEventListener("beforeunload", wipe);
+    }, [idsession, nameSession, history, loadMembers, wipe]);
 
     return (
         <Fragment>
             {/* < !--Headline -- > */}
             <div className="row">
                 <div className="col-xs-12 col-sm-1">
-                    <button className="btn btn-lg btn-danger wipe" onClick={() => wipe()}>Wipe</button>
+                    <button className="btn btn-lg btn-danger wipe" onClick={() => wipe(true)}>Wipe</button>
                 </div>
                 <div className="col-xs-10 col-sm-8 col-md-10">
                     <h1>{idsession} - {nameSession}</h1>

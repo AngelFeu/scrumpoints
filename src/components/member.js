@@ -21,12 +21,12 @@ const Member = () => {
             });
     };
 
-    const leave = () => {
+    const leave = useCallback((redirect) => {
         API.delete(`member/${idmember}`)
             .then(res => {
-                history.push('/');
+                if (redirect) history.push('/');
             });
-    };
+    }, [idmember, history]);
 
     const selectCard = async (cardValue) => {
         await API.delete(`vote/member/${idmember}`)
@@ -105,9 +105,10 @@ const Member = () => {
                     if (!res.data.data) history.push('/');
                     setMember(res.data.data);
                 });
+        //return () => { leave(false); }
+    }, [idsession, idmember, cardSet, member, history, leave]);
 
-        return clearTimeout(reloadCardSet);
-    }, [idsession, idmember, cardSet, member, history, reloadCardSet]);
+    window.onbeforeunload = leave(false);
 
     return (
         <Fragment>
@@ -118,7 +119,7 @@ const Member = () => {
                             <h2 className="col-xs-10">topic</h2>
                         </a>
                         <div className="col-xs-2">
-                            <div className="leave remove selectable" onClick={() => leave()}>
+                            <div className="leave remove selectable" onClick={() => leave(true)}>
                                 <span className="glyphicon glyphicon-remove"></span>
                             </div>
                         </div>
