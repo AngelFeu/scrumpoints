@@ -160,15 +160,18 @@ const Session = () => {
                 const polls = res.data.data;
                 let initialTime = new Date();
                 let finalitationTime = new Date(1900, 1, 1);
+                let starttime;
+                let endtime;
                 polls.forEach(poll => {
-                    let starttime = new Date(poll.starttime);
-                    let endtime = new Date(poll.endtime);
+                    starttime = new Date(poll.starttime);
+                    endtime = new Date(poll.endtime);
                     if (starttime < initialTime) initialTime = starttime;
                     if (endtime > finalitationTime) finalitationTime = endtime;
                 });
+                const totalMinutes = Math.ceil(Math.abs(endtime - starttime) / (1000 * 60));
                 setStatisticsView(true);
                 setAverageAttemptsValue('');
-                setDiscussionTimeValue('');
+                setDiscussionTimeValue(totalMinutes);
                 setEstimationProphetValue('');
                 setEstimationTimeValue('');
                 setPollCountValue(polls.length);
